@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="flex flex-col gap-6">
+
+  <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+    <div class="flex flex-col sm:flex-row sm:items-center gap-3">
+      <div>
+        <h1 class="text-2xl font-bold">Olá, {{ usuario.nome }} 👋</h1>
+        <p class="text-sm text-slate-600 mt-1">
+          Perfil ativo: <span class="font-semibold">{{ ativo.apelido or ativo.nome }}</span>
+        </p>
+      </div>
+
+      <div class="sm:ml-auto flex items-center gap-2">
+        <button onclick="enablePush()" class="px-3 py-2 rounded-xl border border-slate-200 bg-white text-sm hover:bg-slate-50">
+          Ativar notificações
+        </button>
+        <a href="{{ url_for('tarefas') }}" class="px-3 py-2 rounded-xl bg-teal-700 text-white text-sm font-semibold hover:bg-teal-800">
+          Ver tarefas
+        </a>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6">
+      <div class="rounded-2xl bg-slate-50 border border-slate-200 p-4">
+        <div class="text-sm text-slate-600">XP</div>
+        <div class="text-2xl font-bold mt-1">{{ crianca.xp_total }}</div>
+      </div>
+      <div class="rounded-2xl bg-slate-50 border border-slate-200 p-4">
+        <div class="text-sm text-slate-600">Nível</div>
+        <div class="text-2xl font-bold mt-1">{{ crianca.nivel }}</div>
+      </div>
+      <div class="rounded-2xl bg-slate-50 border border-slate-200 p-4">
+        <div class="text-sm text-slate-600">Próximas tarefas</div>
+        <div class="text-2xl font-bold mt-1">{{ proximas|length }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+    <div class="flex items-center justify-between">
+      <h2 class="text-lg font-bold">Próximas</h2>
+      <a href="{{ url_for('tarefas') }}" class="text-sm text-teal-700 font-semibold">Gerenciar</a>
+    </div>
+
+    {% if proximas %}
+    <div class="mt-4 space-y-3">
+      {% for t in proximas %}
+        <div class="p-4 rounded-2xl border border-slate-200 flex items-start gap-3">
+          <div class="mt-1 w-2.5 h-2.5 rounded-full bg-teal-600"></div>
+          <div class="flex-1">
+            <div class="font-semibold">{{ t.titulo }}</div>
+            <div class="text-sm text-slate-600">
+              {{ t.tipo }}{% if t.disciplina %} • {{ t.disciplina }}{% endif %}
+              {% if t.data_entrega %} • {{ t.data_entrega }}{% if t.hora_entrega %} {{ t.hora_entrega }}{% endif %}{% endif %}
+            </div>
+          </div>
+          <div class="text-xs px-2 py-1 rounded-lg bg-slate-100 border border-slate-200">{{ t.status }}</div>
+        </div>
+      {% endfor %}
+    </div>
+    {% else %}
+      <p class="mt-4 text-sm text-slate-600">Sem tarefas pendentes por enquanto 🎉</p>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}

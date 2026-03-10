@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ title or "Tarefas" }}</title>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#0f766e">
+  <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>html,body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}</style>
+</head>
+<body class="bg-slate-50 text-slate-900">
+  {% if session.get('usuario_id') %}
+  <header class="sticky top-0 z-40 bg-white/80 backdrop-blur border-b border-slate-200">
+    <div class="max-w-5xl mx-auto px-4 py-3 flex items-center gap-3">
+      <a href="{{ url_for('dashboard') }}" class="font-bold text-teal-700">Tarefas</a>
+
+      <div class="ml-auto flex items-center gap-2">
+        {% if kids %}
+          <div class="hidden sm:block text-sm text-slate-600">Criança:</div>
+          <details class="relative">
+            <summary class="list-none cursor-pointer px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-sm">
+              {{ ativo.apelido or ativo.nome }}
+            </summary>
+            <div class="absolute right-0 mt-2 w-56 bg-white border border-slate-200 rounded-xl shadow-lg overflow-hidden">
+              {% for k in kids %}
+                <a href="{{ url_for('selecionar_crianca', crianca_id=k.id) }}"
+                   class="block px-4 py-2 text-sm hover:bg-slate-50 {% if ativo and k.id==ativo.id %}font-semibold{% endif %}">
+                  {{ k.apelido or k.nome }}
+                </a>
+              {% endfor %}
+              <a href="{{ url_for('criancas') }}" class="block px-4 py-2 text-sm text-teal-700 hover:bg-slate-50">
+                + Gerenciar perfis
+              </a>
+            </div>
+          </details>
+        {% endif %}
+
+        <a href="{{ url_for('tarefas') }}" class="px-3 py-1.5 rounded-lg text-sm hover:bg-slate-100">Tarefas</a>
+        <a href="{{ url_for('perfil') }}" class="px-3 py-1.5 rounded-lg text-sm hover:bg-slate-100">Perfil</a>
+        <a href="{{ url_for('logout') }}" class="px-3 py-1.5 rounded-lg text-sm text-slate-500 hover:bg-slate-100">Sair</a>
+      </div>
+    </div>
+  </header>
+  {% endif %}
+
+  <main class="max-w-5xl mx-auto px-4 py-6">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="space-y-2 mb-4">
+          {% for cat, msg in messages %}
+            <div class="rounded-xl px-4 py-3 text-sm border
+              {% if cat=='ok' %} bg-emerald-50 border-emerald-200 text-emerald-800
+              {% else %} bg-rose-50 border-rose-200 text-rose-800
+              {% endif %}">
+              {{ msg }}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+  </main>
+
+<script>
+// PWA: registra service worker
+(async function(){
+  if (!("serviceWorker" in navigator)) return;
+  try{
+    await navigator.serviceWorker.register("/sw.js");
+  }catch(e){}
+})();
+
+function urlBase64ToUint8Array(base64String) {
+  const padding = "=".repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+  const rawData = atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; ++i) outputArray[i] = rawData.charCodeAt(i);
+  return outputArray;
+}
+
+// Push: solicita permissão e assina (quando usuário clicar)
+async function enablePush(){
+  if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
+    alert("Seu navegador não suporta notificações Push.");
+    return;
+  }
+  const perm = await Notification.requestPermission();
+  if (perm !== "granted") {
+    alert("Permissão de notificações negada.");
+    return;
+  }
+
+  const keyRes = await fetch("/push/public_key");
+  const keyData = await keyRes.json();
+  if (!keyData.enabled) {
+    alert("Push não está habilitado neste servidor (verifique dependências/keys).");
+    return;
+  }
+
+  const reg = await navigator.serviceWorker.ready;
+  const sub = await reg.pushManager.subscribe({
+    userVisibleOnly: true,
+    applicationServerKey: urlBase64ToUint8Array(keyData.publicKey)
+  });
+
+  await fetch("/push/subscribe", {
+    method:"POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({subscription: sub})
+  });
+
+  alert("Notificações ativadas ✅");
+}
+</script>
+
+</body>
+</html>

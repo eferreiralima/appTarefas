@@ -1,0 +1,16 @@
+Projeto: Tarefas
+
+Senha database: aS9uwG4LZji5IYak
+
+
+
+
+$env:DATABASE_URL="postgresql://postgres:aS9uwG4LZji5IYak@db.qoibsptlnekyfuphyyzr.supabase.co:5432/postgres"
+python setup_db.py
+
+
+postgresql://postgres:[YOUR-PASSWORD]@db.qoibsptlnekyfuphyyzr.supabase.co:5432/postgres
+
+
+
+postgresql://postgres.qoibsptlnekyfuphyyzr:aS9uwG4LZji5IYak@aws-1-sa-east-1.pooler.supabase.com:6543/postgres

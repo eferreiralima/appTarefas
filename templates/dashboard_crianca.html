@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="flex flex-col gap-6">
+
+  <div class="bg-gradient-to-r from-teal-600 to-teal-800 text-white rounded-2xl shadow-sm p-6 relative overflow-hidden">
+    <div class="relative z-10">
+      <h1 class="text-3xl font-bold">Olá, {{ crianca.apelido or crianca.nome }}! 🚀</h1>
+      <p class="text-teal-100 mt-2">Pronta para subir de nível hoje?</p>
+      
+      <div class="grid grid-cols-2 gap-4 mt-6 max-w-sm">
+        <div class="rounded-xl bg-white/20 p-4 backdrop-blur">
+          <div class="text-sm text-teal-100 font-medium">Nível atual</div>
+          <div class="text-3xl font-bold mt-1">{{ crianca.nivel }}</div>
+        </div>
+        <div class="rounded-xl bg-white/20 p-4 backdrop-blur">
+          <div class="text-sm text-teal-100 font-medium">Seu XP</div>
+          <div class="text-3xl font-bold mt-1">{{ crianca.xp_total }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+    <h2 class="text-xl font-bold mb-4">Suas Missões</h2>
+
+    {% if tarefas %}
+      <div class="space-y-4">
+        {% for t in tarefas %}
+          <div class="p-4 rounded-2xl border border-slate-200 hover:border-teal-300 transition-colors">
+            <div class="flex items-start gap-3">
+              <div class="flex-1">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <div class="font-semibold text-lg">{{ t.titulo }}</div>
+                  <span class="text-xs px-2 py-1 rounded-lg {{ t.badge.cls }} font-medium">{{ t.badge.text }}</span>
+                  <span class="text-xs px-2 py-1 rounded-lg bg-amber-100 text-amber-800 font-bold">+{{ t.xp_recompensa }} XP</span>
+                </div>
+
+                <div class="text-sm text-slate-600 mt-1">
+                  {% if t.disciplina %}📖 {{ t.disciplina }}{% endif %}
+                  {% if t.data_entrega %} • 📅 {{ t.data_entrega }}{% endif %}
+                </div>
+
+                {% if t.descricao %}
+                  <div class="text-sm text-slate-700 mt-3 p-3 bg-slate-50 rounded-xl whitespace-pre-wrap">{{ t.descricao }}</div>
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="mt-4 flex flex-wrap gap-2 pt-3 border-t border-slate-100">
+              <a href="{{ url_for('atualizar_status', tarefa_id=t.id, novo_status='A Fazer') }}"
+                 class="px-4 py-2 rounded-xl border border-slate-200 text-sm hover:bg-slate-50 font-medium">
+                 Aguardando
+              </a>
+              <a href="{{ url_for('atualizar_status', tarefa_id=t.id, novo_status='Fazendo') }}"
+                 class="px-4 py-2 rounded-xl bg-blue-50 text-blue-700 border border-blue-200 text-sm hover:bg-blue-100 font-medium">
+                 Comecei!
+              </a>
+              <a href="{{ url_for('atualizar_status', tarefa_id=t.id, novo_status='Concluído') }}"
+                 class="px-4 py-2 rounded-xl bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 shadow-sm">
+                 ✓ Finalizar e Ganhar XP
+              </a>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="text-center py-8">
+        <p class="text-slate-500">Nenhuma missão pendente! Você está livre! 🎉</p>
+      </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}

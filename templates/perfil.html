@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+  <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+    <h1 class="text-2xl font-bold">Perfil</h1>
+    <p class="text-sm text-slate-600 mt-1">Configurações básicas do responsável.</p>
+
+    <div class="mt-6 space-y-2">
+      <div class="text-sm"><span class="text-slate-500">Nome:</span> <span class="font-semibold">{{ usuario.nome }}</span></div>
+      <div class="text-sm"><span class="text-slate-500">E-mail:</span> <span class="font-semibold">{{ usuario.email }}</span></div>
+      <div class="text-sm"><span class="text-slate-500">Criança ativa:</span> <span class="font-semibold">{{ ativo.apelido or ativo.nome }}</span></div>
+    </div>
+
+    <div class="mt-6 flex flex-wrap gap-2">
+      <a href="{{ url_for('criancas') }}" class="px-3 py-2 rounded-xl border border-slate-200 bg-white text-sm hover:bg-slate-50">
+        Gerenciar crianças
+      </a>
+      <button onclick="enablePush()" class="px-3 py-2 rounded-xl bg-teal-700 text-white text-sm font-semibold hover:bg-teal-800">
+        Ativar notificações
+      </button>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+    <h2 class="text-lg font-bold">Resumo da criança</h2>
+    <p class="text-sm text-slate-600 mt-1">Conquistas do perfil ativo.</p>
+
+    <div class="mt-4 space-y-3">
+      <div class="rounded-2xl bg-slate-50 border border-slate-200 p-4">
+        <div class="text-sm text-slate-600">Tarefas concluídas</div>
+        <div class="text-2xl font-bold mt-1">{{ concluidas }}</div>
+      </div>
+      <div class="text-xs text-slate-500">
+        Dica: cada tarefa concluída soma XP e aumenta o nível a cada 100 XP.
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

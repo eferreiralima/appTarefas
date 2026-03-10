@@ -1,0 +1,185 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="flex flex-col gap-6">
+
+  <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+    <div class="flex flex-col sm:flex-row sm:items-center gap-3">
+      <div>
+        <h1 class="text-2xl font-bold">Tarefas</h1>
+        <p class="text-sm text-slate-600 mt-1">
+          {{ concluidas }} concluídas de {{ total }} • {{ porcentagem }}%
+        </p>
+      </div>
+
+      <div class="sm:ml-auto flex items-center gap-2">
+        <a href="{{ url_for('tarefas', status='todas', tipo='todos') }}"
+           class="px-3 py-2 rounded-xl border border-slate-200 bg-white text-sm hover:bg-slate-50">
+          Limpar filtros
+        </a>
+      </div>
+    </div>
+
+    <form class="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-3" method="get">
+      <div>
+        <label class="text-xs text-slate-600">Status</label>
+        <select name="status" class="mt-1 w-full rounded-xl border-slate-200">
+          <option value="todas" {% if filtro_status=='todas' %}selected{% endif %}>Todas</option>
+          <option value="A Fazer" {% if filtro_status=='A Fazer' %}selected{% endif %}>A Fazer</option>
+          <option value="Fazendo" {% if filtro_status=='Fazendo' %}selected{% endif %}>Fazendo</option>
+          <option value="Concluído" {% if filtro_status=='Concluído' %}selected{% endif %}>Concluído</option>
+        </select>
+      </div>
+      <div>
+        <label class="text-xs text-slate-600">Tipo</label>
+        <select name="tipo" class="mt-1 w-full rounded-xl border-slate-200">
+          <option value="todos" {% if filtro_tipo=='todos' %}selected{% endif %}>Todos</option>
+          <option>Casa</option>
+          <option>Trabalho</option>
+          <option>Prova</option>
+          <option>Estudo</option>
+          <option>Outro</option>
+        </select>
+      </div>
+      <div class="col-span-2 sm:col-span-2 flex items-end">
+        <button class="w-full py-2.5 rounded-xl bg-teal-700 text-white font-semibold hover:bg-teal-800">
+          Filtrar
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+    <h2 class="text-lg font-bold">Adicionar tarefa</h2>
+
+    <form class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4" method="post" action="{{ url_for('adicionar_tarefa') }}">
+      <div class="sm:col-span-2">
+        <label class="text-sm font-medium">Título</label>
+        <input name="titulo" class="mt-1 w-full rounded-xl border-slate-200" placeholder="Ex.: Lição de matemática" required>
+      </div>
+
+      <div>
+        <label class="text-sm font-medium">Tipo</label>
+        <select name="tipo" class="mt-1 w-full rounded-xl border-slate-200">
+          <option>Casa</option>
+          <option>Trabalho</option>
+          <option>Prova</option>
+          <option>Estudo</option>
+          <option>Outro</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="text-sm font-medium">Disciplina</label>
+        <input name="disciplina" class="mt-1 w-full rounded-xl border-slate-200" placeholder="Ex.: Português">
+      </div>
+
+      <div>
+        <label class="text-sm font-medium">Data de entrega</label>
+        <input name="data_entrega" type="date" class="mt-1 w-full rounded-xl border-slate-200">
+      </div>
+
+      <div>
+        <label class="text-sm font-medium">Hora (opcional)</label>
+        <input name="hora_entrega" type="time" class="mt-1 w-full rounded-xl border-slate-200">
+      </div>
+
+      <div>
+        <label class="text-sm font-medium">Prioridade</label>
+        <select name="prioridade" class="mt-1 w-full rounded-xl border-slate-200">
+          <option value="Baixa">Baixa</option>
+          <option value="Media" selected>Média</option>
+          <option value="Alta">Alta</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="text-sm font-medium">XP</label>
+        <input name="xp_recompensa" type="number" value="50" min="0" class="mt-1 w-full rounded-xl border-slate-200">
+      </div>
+
+      <div class="sm:col-span-2">
+        <label class="text-sm font-medium">Descrição (opcional)</label>
+        <textarea name="descricao" rows="3" class="mt-1 w-full rounded-xl border-slate-200" placeholder="Detalhes, links, lembretes de estudo..."></textarea>
+      </div>
+
+      <div class="sm:col-span-2">
+        <label class="text-sm font-medium">Lembrete (opcional)</label>
+        <input name="lembrete_em" type="datetime-local" class="mt-1 w-full rounded-xl border-slate-200">
+        <p class="text-xs text-slate-500 mt-1">O app tenta disparar notificações no horário (o servidor verifica a cada ~30s).</p>
+      </div>
+
+      <div class="sm:col-span-2">
+        <button class="w-full py-3 rounded-xl bg-teal-700 text-white font-semibold hover:bg-teal-800">
+          Salvar tarefa
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+    <div class="flex items-center justify-between">
+      <h2 class="text-lg font-bold">Lista</h2>
+      <button onclick="enablePush()" class="px-3 py-2 rounded-xl border border-slate-200 bg-white text-sm hover:bg-slate-50">
+        Ativar notificações
+      </button>
+    </div>
+
+    {% if tarefas %}
+      <div class="mt-4 space-y-3">
+        {% for t in tarefas %}
+          <div class="p-4 rounded-2xl border border-slate-200">
+            <div class="flex items-start gap-3">
+              <div class="flex-1">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <div class="font-semibold">{{ t.titulo }}</div>
+                  <span class="text-xs px-2 py-1 rounded-lg {{ t.badge.cls }}">{{ t.badge.text }}</span>
+                  <span class="text-xs px-2 py-1 rounded-lg bg-slate-100 border border-slate-200">{{ t.tipo }}</span>
+                  {% if t.prioridade == 'Alta' %}
+                    <span class="text-xs px-2 py-1 rounded-lg bg-rose-100 text-rose-800">Alta</span>
+                  {% elif t.prioridade == 'Baixa' %}
+                    <span class="text-xs px-2 py-1 rounded-lg bg-emerald-100 text-emerald-800">Baixa</span>
+                  {% else %}
+                    <span class="text-xs px-2 py-1 rounded-lg bg-amber-100 text-amber-800">Média</span>
+                  {% endif %}
+                </div>
+
+                <div class="text-sm text-slate-600 mt-1">
+                  {% if t.disciplina %}{{ t.disciplina }}{% endif %}
+                  {% if t.data_entrega %} • {{ t.data_entrega }}{% if t.hora_entrega %} {{ t.hora_entrega }}{% endif %}{% endif %}
+                  • XP {{ t.xp_recompensa }}
+                </div>
+
+                {% if t.descricao %}
+                  <div class="text-sm text-slate-700 mt-2 whitespace-pre-wrap">{{ t.descricao }}</div>
+                {% endif %}
+              </div>
+
+              <a href="{{ url_for('deletar_tarefa', tarefa_id=t.id) }}"
+                 class="text-sm text-slate-400 hover:text-rose-600"
+                 title="Excluir">✕</a>
+            </div>
+
+            <div class="mt-3 flex flex-wrap gap-2">
+              <a href="{{ url_for('atualizar_status', tarefa_id=t.id, novo_status='A Fazer') }}"
+                 class="px-3 py-2 rounded-xl border border-slate-200 text-sm hover:bg-slate-50">
+                 A Fazer
+              </a>
+              <a href="{{ url_for('atualizar_status', tarefa_id=t.id, novo_status='Fazendo') }}"
+                 class="px-3 py-2 rounded-xl border border-slate-200 text-sm hover:bg-slate-50">
+                 Fazendo
+              </a>
+              <a href="{{ url_for('atualizar_status', tarefa_id=t.id, novo_status='Concluído') }}"
+                 class="px-3 py-2 rounded-xl bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700">
+                 Concluído
+              </a>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="mt-4 text-sm text-slate-600">Nenhuma tarefa encontrada com esses filtros.</p>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}
