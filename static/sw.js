@@ -1,4 +1,4 @@
-const CACHE_NAME = "tarefas-static-v3";
+const CACHE_NAME = "tarefas-static-v4";
 const STATIC_ASSETS = [
   "/manifest.json",
   "/static/icon-192.png",
