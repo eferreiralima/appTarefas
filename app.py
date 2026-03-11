@@ -243,14 +243,30 @@ def logout():
 # -----------------------
 # Dashboard Responsável
 # -----------------------
+# -----------------------
+# Dashboard Responsável
+# -----------------------
 @app.route("/dashboard")
 def dashboard():
     if not require_login(): return redirect(url_for("login"))
     if session.get("role") == "crianca": return redirect(url_for("dashboard_crianca"))
 
     conn = conectar_db()
+    
+    # Trava de segurança 1: Se o usuário foi apagado do banco, limpa a sessão
     user = get_user(conn)
+    if not user:
+        session.clear()
+        conn.close()
+        return redirect(url_for("login"))
+
+    # Trava de segurança 2: Se excluiu todas as crianças, obriga a criar uma
     ativo = get_active_child(conn, user["id"])
+    if not ativo:
+        conn.close()
+        flash("Crie um perfil para a criança antes de acessar o painel.", "error")
+        return redirect(url_for("criancas"))
+
     kids = user_children(conn, user["id"])
 
     hoje = agora_local().date().strftime("%Y-%m-%d")
