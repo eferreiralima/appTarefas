@@ -243,9 +243,6 @@ def logout():
 # -----------------------
 # Dashboard Responsável
 # -----------------------
-# -----------------------
-# Dashboard Responsável
-# -----------------------
 @app.route("/dashboard")
 def dashboard():
     if not require_login(): return redirect(url_for("login"))
@@ -253,27 +250,29 @@ def dashboard():
 
     conn = conectar_db()
     
-    # Trava de segurança 1: Se o usuário foi apagado do banco, limpa a sessão
+    # Trava de segurança 1: Se o utilizador foi apagado
     user = get_user(conn)
     if not user:
         session.clear()
         conn.close()
         return redirect(url_for("login"))
 
-    # Trava de segurança 2: Se excluiu todas as crianças, obriga a criar uma
+    # Trava de segurança 2: Se excluiu os perfis das crianças
     ativo = get_active_child(conn, user["id"])
     if not ativo:
         conn.close()
-        flash("Crie um perfil para a criança antes de acessar o painel.", "error")
+        flash("Crie um perfil para a criança antes de aceder ao painel.", "error")
         return redirect(url_for("criancas"))
 
     kids = user_children(conn, user["id"])
 
     hoje = agora_local().date().strftime("%Y-%m-%d")
+    
+    # Repare na correção: '9999-12-31'::date e '23:59'::time
     proximas = conn.execute("""
         SELECT * FROM tarefas
         WHERE crianca_id=%s AND status != 'Concluído' AND (data_entrega IS NULL OR data_entrega >= %s)
-        ORDER BY COALESCE(data_entrega,'9999-12-31') ASC, COALESCE(hora_entrega,'23:59') ASC
+        ORDER BY COALESCE(data_entrega, '9999-12-31'::date) ASC, COALESCE(hora_entrega, '23:59'::time) ASC
         LIMIT 5
     """, (ativo["id"], hoje)).fetchall()
 
@@ -295,10 +294,11 @@ def dashboard_crianca():
     
     crianca = conn.execute("SELECT * FROM criancas WHERE id=%s", (cid,)).fetchone()
     
+    # Correção do COALESCE para o PostgreSQL
     tarefas_db = conn.execute("""
         SELECT * FROM tarefas
         WHERE crianca_id=%s AND status != 'Concluído'
-        ORDER BY COALESCE(data_entrega,'9999-12-31') ASC, id DESC
+        ORDER BY COALESCE(data_entrega, '9999-12-31'::date) ASC, id DESC
     """, (cid,)).fetchall()
     
     hoje = agora_local().date()
@@ -307,7 +307,6 @@ def dashboard_crianca():
         tarefa = dict(t)
         if tarefa.get("data_entrega"):
             try:
-                # Trata data_entrega caso retorne como objeto datetime.date do Postgres
                 data_tarefa = tarefa["data_entrega"] if isinstance(tarefa["data_entrega"], datetime.date) else datetime.strptime(str(tarefa["data_entrega"]), "%Y-%m-%d").date()
                 if data_tarefa < hoje:
                     tarefa["badge"] = {"text": "Atrasado", "cls": "bg-red-100 text-red-800"}
@@ -475,6 +474,7 @@ def tarefas():
         where.append("tipo=%s")
         params.append(filtro_tipo)
 
+    # Correção do COALESCE para o PostgreSQL (linhas finais da query)
     sql = f"""
         SELECT * FROM tarefas
         WHERE {' AND '.join(where)}
@@ -485,8 +485,8 @@ def tarefas():
             WHEN 'Concluído' THEN 3
             ELSE 9
           END,
-          COALESCE(data_entrega,'9999-12-31') ASC,
-          COALESCE(hora_entrega,'23:59') ASC,
+          COALESCE(data_entrega, '9999-12-31'::date) ASC,
+          COALESCE(hora_entrega, '23:59'::time) ASC,
           id DESC
     """
     tarefas_db = conn.execute(sql, tuple(params)).fetchall()
