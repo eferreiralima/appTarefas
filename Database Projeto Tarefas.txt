@@ -14,3 +14,8 @@ postgresql://postgres:[YOUR-PASSWORD]@db.qoibsptlnekyfuphyyzr.supabase.co:5432/p
 
 
 postgresql://postgres.qoibsptlnekyfuphyyzr:aS9uwG4LZji5IYak@aws-1-sa-east-1.pooler.supabase.com:6543/postgres
+
+
+
+
+APP_SECRET_KEY: 935f37eadd04f2ec1c77232d36102ab8

@@ -37,5 +37,30 @@
     </div>
   </div>
 
+  <div class="lg:col-span-3 bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+    <h2 class="text-lg font-bold">Adicionar outro Responsável</h2>
+    <p class="text-sm text-slate-600 mt-1">Crie um acesso para mãe, pai ou avós gerenciarem as tarefas junto com você.</p>
+
+    <form action="{{ url_for('adicionar_responsavel') }}" method="post" class="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div>
+        <label class="text-sm font-medium">Nome</label>
+        <input name="nome" class="mt-1 w-full rounded-xl border-slate-200" placeholder="Ex.: Maria" required>
+      </div>
+      <div>
+        <label class="text-sm font-medium">E-mail</label>
+        <input name="email" type="email" class="mt-1 w-full rounded-xl border-slate-200" placeholder="Ex.: maria@familia.com" required>
+      </div>
+      <div>
+        <label class="text-sm font-medium">Senha de acesso</label>
+        <input name="senha" type="password" class="mt-1 w-full rounded-xl border-slate-200" placeholder="Crie uma senha inicial" required>
+      </div>
+      <div class="sm:col-span-3 mt-2">
+        <button type="submit" class="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-slate-800 text-white font-semibold hover:bg-slate-900">
+          Adicionar Responsável
+        </button>
+      </div>
+    </form>
+  </div>
+
 </div>
 {% endblock %}

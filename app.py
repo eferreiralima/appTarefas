@@ -616,6 +616,50 @@ def perfil():
     conn.close()
     return render_template("perfil.html", usuario=user, kids=kids, ativo=ativo, concluidas=total_concluidas)
 
+
+@app.route("/adicionar_responsavel", methods=["POST"])
+def adicionar_responsavel():
+    if not require_login(): return redirect(url_for("login"))
+    if session.get("role") == "crianca": return redirect(url_for("dashboard_crianca"))
+
+    conn = conectar_db()
+    uid_atual = session["usuario_id"]
+
+    nome = (request.form.get("nome") or "").strip()
+    email = (request.form.get("email") or "").strip().lower()
+    senha = request.form.get("senha") or ""
+
+    if not nome or not email or not senha:
+        flash("Preencha todos os campos para adicionar o responsável.", "error")
+        conn.close()
+        return redirect(url_for("perfil"))
+
+    try:
+        # 1. Cria o novo usuário como 'responsavel'
+        senha_hash = generate_password_hash(senha)
+        cur = conn.execute(
+            "INSERT INTO usuarios (nome, email, senha_hash, role) VALUES (%s,%s,%s,%s) RETURNING id",
+            (nome, email, senha_hash, "responsavel")
+        )
+        novo_uid = cur.fetchone()["id"]
+
+        # 2. Pega as crianças do usuário atual e vincula ao novo responsável
+        kids = user_children(conn, uid_atual)
+        for k in kids:
+            conn.execute("""
+                INSERT INTO familia_membros (usuario_id, crianca_id, papel) VALUES (%s,%s,%s)
+                ON CONFLICT (usuario_id, crianca_id) DO NOTHING
+            """, (novo_uid, k["id"], "responsavel"))
+
+        flash(f"Responsável {nome} adicionado com sucesso! Já pode fazer login.", "ok")
+    except psycopg2.IntegrityError:
+        flash("Este e-mail já está em uso por outro usuário.", "error")
+    except Exception:
+        flash("Erro ao adicionar responsável.", "error")
+
+    conn.close()
+    return redirect(url_for("perfil"))
+
 # -----------------------
 # Push subscribe endpoints
 # -----------------------
